@@ -24,7 +24,7 @@ class Var(object):
     OWNER_USERNAME = str(getenv('OWNER_USERNAME', 'SMD_Owner'))
     if 'DYNO' in environ:
         ON_HEROKU = True
-        APP_NAME = str(getenv('APP_NAME'))
+        APP_NAME = str(getenv('APP_NAME','smdfile-to-link-f79fe378bc37.herokuapp.com'))
     
     else:
         ON_HEROKU = False
