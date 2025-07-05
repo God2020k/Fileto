@@ -8,6 +8,13 @@ from utils_bot import readable_time, get_readable_file_size
 
 StartTime = time.time()
 
+app = Client(
+    "streambot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
+
 START_TEXT = "Your Telegram DC is: `{}`"
 
 @app.on_message(filters.regex("Owner😎"))
@@ -85,3 +92,5 @@ async def status_handler(client, message):
     )
 
     await message.reply_text(text)
+
+app.run()
