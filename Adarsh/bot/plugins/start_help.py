@@ -1,4 +1,4 @@
-# (c) adarsh-goel 
+# (c) adarsh-goel 
 from Adarsh.bot import StreamBot
 from Adarsh.vars import Var
 import logging
@@ -7,12 +7,11 @@ from Adarsh.bot.plugins.stream import MY_PASS
 from Adarsh.utils.human_readable import humanbytes
 from Adarsh.utils.database import Database
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import UserNotParticipant
 from Adarsh.utils.file_properties import get_name, get_hash, get_media_file_size
-db = Database(Var.DATABASE_URL, Var.name)
 
-# Removed ReplyKeyboardMarkup import since we use inline keyboards now
+db = Database(Var.DATABASE_URL, Var.name)
 
 if MY_PASS:
     buttonz = InlineKeyboardMarkup(
@@ -89,12 +88,10 @@ async def start(b, m):
             return
     await StreamBot.send_photo(
         chat_id=m.chat.id,
-
-photo="https://graph.org/file/4b8bf6ec079dbe5aac0cf.jpg",
+        photo="https://graph.org/file/4b8bf6ec079dbe5aac0cf.jpg",
         caption=f'𝐇𝐢𝐢 {m.from_user.mention(style="md")}...!,\n𝐈 𝐀𝐦 𝐒𝐌𝐃 𝐅𝐢𝐥𝐞 𝐓𝐨 𝐋𝐢𝐧𝐤 𝐑𝐨𝐁𝐨𝐭 𝐅𝐨𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥 𝐎𝐰𝐧𝐞𝐫𝐬 𝐨𝐧𝐥𝐲.\n𝐒𝐞𝐧𝐝 𝐌𝐞 𝐚𝐧𝐲 𝐅𝐢𝐥𝐞 𝐚𝐧𝐝 𝐠𝐞𝐭 𝐚 𝐃𝐢𝐫𝐞𝐜𝐭 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐋𝐢𝐧𝐤 𝐚𝐧𝐝 𝐒𝐭𝐫𝐞𝐚𝐦𝐛𝐥𝐞 𝐋𝐢𝐧𝐤.!',
         reply_markup=buttonz
     )
-
 
 @StreamBot.on_message((filters.command("help") | filters.regex('help📚')) & filters.private)
 async def help_handler(bot, message):
@@ -151,4 +148,55 @@ async def help_handler(bot, message):
                 ]
             ]
         ),
-            )
+    )
+
+@StreamBot.on_callback_query()
+async def callback_handler(client, callback_query: CallbackQuery):
+    data = callback_query.data
+
+    if data == "start":
+        await callback_query.answer()
+        await callback_query.message.edit_text(
+            "You pressed Start!\nSend me any file and I will give you download and stream links.",
+            reply_markup=buttonz
+        )
+
+    elif data == "help":
+        await callback_query.answer()
+        await callback_query.message.edit_text(
+            "Help Section:\n- Send any file to get links.\n- Add me to your channel for streaming.",
+            reply_markup=buttonz
+        )
+
+    elif data == "login":
+        await callback_query.answer("Login feature is not implemented yet.", show_alert=True)
+
+    elif data == "dc":
+        await callback_query.answer()
+        await callback_query.message.edit_text("Disconnected!")
+
+    elif data == "channel":
+        await callback_query.answer()
+        await callback_query.message.edit_text(
+            f"Join our channel for updates:\nhttps://t.me/{Var.UPDATES_CHANNEL}",
+            reply_markup=buttonz
+        )
+
+    elif data == "ping":
+        await callback_query.answer()
+        await callback_query.message.edit_text("Pong! 🏓", reply_markup=buttonz)
+
+    elif data == "status":
+        await callback_query.answer()
+        await callback_query.message.edit_text("Status: All systems operational.", reply_markup=buttonz)
+
+    elif data == "owner":
+        await callback_query.answer()
+        await callback_query.message.edit_text(
+            "Owner: [SMD Owner](https://t.me/SMD_Owner)",
+            reply_markup=buttonz,
+            parse_mode="markdown"
+        )
+
+    else:
+        await callback_query.answer("Unknown action!", show_alert=True)
