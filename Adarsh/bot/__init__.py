@@ -1,8 +1,6 @@
-# (c) adarsh-goel
 from pyrogram import Client
 from convopyro import Conversation
-from ..vars import Var
-from os import getcwd
+from ..vars import Var  # Make sure your Var.py is in the parent directory
 
 StreamBot = Client(
     name='Web Streamer',
@@ -12,6 +10,7 @@ StreamBot = Client(
     sleep_threshold=Var.SLEEP_THRESHOLD,
     workers=Var.WORKERS
 )
+
 Conversation(StreamBot)
 
 multi_clients = {}
