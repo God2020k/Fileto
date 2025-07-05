@@ -38,8 +38,8 @@ async def login_handler(c: Client, m: Message):
     try:
         prompt = (
             "Now send me password.\n\n"
-            "𝚃𝚑𝚒𝚜 𝚒𝚜 ᴏᴜʀ ᴏғғɪᴄɪᴀʟ (TDM) 𝚙𝚛𝚒𝚟𝚊𝚝𝚎 Aᴅᴍɪɴ's 𝚋𝚘ᴛ. "
-            "Fᴏʀ 𝙾𝚝𝚑𝚎𝚛 𝚞𝚜𝚎𝚛𝚜 ᴋɪɴᴅʟʏ ᴜsᴇ ᴛʜɪs Fʀᴇᴇ Bᴏᴛ 🤖👉  @TDM_PUB_Files_Streaming_bot 🥰.\n\n"
+            "𝚃𝚑𝚒𝚜 𝚒𝚜 ᴏᴜʀ ᴏғғɪᴄɪᴀʟ 𝚋𝚘ᴛ. "
+            "Fᴏʀ 𝙾𝚝𝚑𝚎𝚛 𝚞𝚜𝚎𝚛𝚜 ᴋɪɴᴅʟʏ ᴜsᴇ \n\n"
             "(You can use /cancel command to cancel the process)"
         )
         ag = await m.reply_text(prompt)
