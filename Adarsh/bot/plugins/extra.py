@@ -6,102 +6,117 @@ import shutil, psutil
 from utils_bot import *
 from Adarsh import StartTime
 
-START_TEXT = """Hi {}, welcome! Choose an option from below."""
+# Message format template for the DC command
+START_TEXT = """Your Telegram DC Is: `{}`"""
 
-# Inline keyboard buttons for main menu
-MAIN_MENU = InlineKeyboardMarkup([
-    [InlineKeyboardButton("Owner😎", callback_data="owner")],
-    [InlineKeyboardButton("Channel❤️", callback_data="channel")],
-    [InlineKeyboardButton("DC", callback_data="dc")],
-    [InlineKeyboardButton("ping📡", callback_data="ping")],
-    [InlineKeyboardButton("status📊", callback_data="status")],
-    [InlineKeyboardButton("List Commands", callback_data="list")]
-])
 
-@StreamBot.on_message(filters.command("start") & filters.private)
-async def start_handler(bot, message):
-    await message.reply_text(
-        START_TEXT.format(message.from_user.first_name),
-        reply_markup=MAIN_MENU
+# ───────────────────────────────────────────────────────────────
+# Handler: Owner Command Triggered By "Owner😎"
+# Responds with an inline button linking to the owner's profile
+@StreamBot.on_message(filters.regex("Owner😎"))
+async def maintainers(bot, m):
+    await bot.send_message(
+        chat_id=m.chat.id,
+        text="This bot was created and maintained by the Developer.",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("👨‍💻 Developer Contact", url="https://t.me/Your_Developer_Username")
+            ],
+            [
+                InlineKeyboardButton("💬 Support Chat", url="https://t.me/YourSupportGroup")
+            ]
+        ]),
+        disable_web_page_preview=True
     )
 
-@StreamBot.on_callback_query()
-async def callback_handler(bot, callback_query):
-    data = callback_query.data
-    chat_id = callback_query.message.chat.id
-    user = callback_query.from_user
 
-    if data == "owner":
-        await callback_query.answer()
-        await bot.send_message(
-            chat_id,
-            text="I am Coded By [SMD Admin](https://t.me/SMD_Owner)",
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("🦋𝐒𝐌𝐃_𝐎𝐰𝐧𝐞𝐫🍁", url="https://t.me/SMD_Owner")]]
-            )
-        )
+# ───────────────────────────────────────────────────────────────
+# Handler: Channel Command Triggered By "Channel❤️"
+# Sends a message with a button to join the official channel
+@StreamBot.on_message(filters.regex("Channel❤️"))
+async def follow_user(bot, m):
+    await bot.send_message(
+        chat_id=m.chat.id,
+        text="<b>Join our official channel for updates and more!</b>",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("📢 Join Our Channel", url="https://t.me/Your_Channel_Link")
+            ]
+        ]),
+        disable_web_page_preview=True
+    )
 
-    elif data == "channel":
-        await callback_query.answer()
-        await bot.send_message(
-            chat_id,
-            text="<b>𝐇𝐄𝐑𝐄'𝐒 𝐓𝐇𝐄 𝐂𝐇𝐀𝐍𝐍𝐄𝐋 𝐋𝐈𝐍𝐊</b>",
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("🍁𝐉𝐎𝐈𝐍 𝐇𝐄𝐑𝐄🦋", url="https://t.me/SAM_DUB_LEZHa")]]
-            )
-        )
 
-    elif data == "dc":
-        await callback_query.answer()
-        dc_text = f"Your Telegram DC Is : {user.dc_id}"
-        await bot.send_message(chat_id, text=dc_text, parse_mode="markdown")
+# ───────────────────────────────────────────────────────────────
+# Handler: DC Info Triggered By "DC"
+# Displays the user's Telegram data center (dc_id)
+@StreamBot.on_message(filters.regex("DC"))
+async def dc_info(bot, m):
+    dc_id = getattr(m.from_user, "dc_id", "Unavailable")
+    text = START_TEXT.format(dc_id)
+    await m.reply_text(
+        text=text,
+        disable_web_page_preview=True,
+        quote=True
+    )
 
-    elif data == "ping":
-        await callback_query.answer()
-        start_t = time.time()
-        sent_msg = await bot.send_message(chat_id, "Pinging...")
-        end_t = time.time()
-        ping_time = (end_t - start_t) * 1000
-        await sent_msg.edit(f"Pong!\n{ping_time:.3f} ms")
 
-    elif data == "status":
-        await callback_query.answer()
-        currentTime = readable_time(time.time() - StartTime)
+# ───────────────────────────────────────────────────────────────
+# Handler: Command List (/list)
+# Lists all commands supported by the bot
+@StreamBot.on_message(filters.command("list"))
+async def command_list(bot, m):
+    mention = f"[{m.from_user.first_name}](tg://user?id={m.from_user.id})"
+    LIST_MSG = f"Hi {mention}, here is a list of available commands:\n\n" \
+               "1. `start⚡️` – Start the bot\n" \
+               "2. `help📚` – Show help menu\n" \
+               "3. `login🔑` – Login system\n" \
+               "4. `Channel❤️` – Join our channel\n" \
+               "5. `ping📡` – Ping bot response time\n" \
+               "6. `status📊` – Show bot/server status\n" \
+               "7. `DC` – Show your Telegram DC ID\n" \
+               "8. `Owner😎` – Contact the developer"
+    
+    await m.reply_text(text=LIST_MSG, parse_mode="Markdown")
+
+
+# ───────────────────────────────────────────────────────────────
+# Handler: Ping Command Triggered by "ping📡"
+# Responds with bot response time (latency)
+@StreamBot.on_message(filters.regex("ping📡"))
+async def ping(bot, m):
+    start = time.time()
+    response = await m.reply_text("Pinging...")
+    latency = (time.time() - start) * 1000
+    await response.edit(f"🏓 Pong!\nResponse Time: `{latency:.3f} ms`", parse_mode="Markdown")
+
+
+# ───────────────────────────────────────────────────────────────
+# Handler: Status Command Triggered by "status📊"
+# Shows system and bot stats like uptime, CPU, RAM, disk, etc.
+@StreamBot.on_message(filters.private & filters.regex("status📊"))
+async def stats(bot, m):
+    try:
+        uptime = readable_time((time.time() - StartTime))
         total, used, free = shutil.disk_usage('.')
         total = get_readable_file_size(total)
         used = get_readable_file_size(used)
         free = get_readable_file_size(free)
         sent = get_readable_file_size(psutil.net_io_counters().bytes_sent)
         recv = get_readable_file_size(psutil.net_io_counters().bytes_recv)
-        cpuUsage = psutil.cpu_percent(interval=0.5)
-        memory = psutil.virtual_memory().percent
+        cpu = psutil.cpu_percent(interval=0.5)
+        ram = psutil.virtual_memory().percent
         disk = psutil.disk_usage('/').percent
-        botstats = (
-            f'<b>Bot Uptime:</b> {currentTime}\n'
-            f'<b>Total disk space:</b> {total}\n'
-            f'<b>Used:</b> {used}  <b>Free:</b> {free}\n\n'
-            f'📊Data Usage📊\n<b>Upload:</b> {sent}\n'
-            f'<b>Down:</b> {recv}\n\n'
-            f'<b>CPU:</b> {cpuUsage}% <b>RAM:</b> {memory}% <b>Disk:</b> {disk}%'
+
+        msg = (
+            f"<b>🤖 Bot Uptime:</b> {uptime}\n"
+            f"<b>💾 Disk:</b> Total: {total} | Used: {used} | Free: {free}\n\n"
+            f"<b>📡 Data Usage:</b>\n"
+            f"Upload: {sent} | Download: {recv}\n\n"
+            f"<b>📊 System Load:</b>\n"
+            f"CPU: {cpu}% | RAM: {ram}% | Disk: {disk}%"
         )
-        await bot.send_message(chat_id, text=botstats)
 
-    elif data == "list":
-        await callback_query.answer()
-        list_msg = (
-            "Hi! {} Here is a list of all my commands:\n\n"
-            "1. start⚡️\n"
-            "2. help📚\n"
-            "3. login🔑\n"
-            "4. Channel❤️\n"
-            "5. ping📡\n"
-            "6. status📊\n"
-            "7. DC (your telegram datacenter info)\n"
-            "8. Owner😎"
-        ).format(user.mention(style="md"))
-        await bot.send_message(chat_id, text=list_msg)
-
-    else:
-        await callback_query.answer("Unknown command!", show_alert=True)
+        await m.reply_text(msg)
+    except Exception as e:
+        await m.reply_text(f"❌ Error occurred:\n`{str(e)}`", parse_mode="Markdown")
