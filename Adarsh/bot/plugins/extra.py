@@ -1,101 +1,95 @@
-from Adarsh.bot import StreamBot
+from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram import filters
 import time
 import shutil
 import psutil
-
 from utils_bot import get_readable_file_size, readable_time
 from Adarsh import StartTime
 
-START_TEXT = "Your Telegram DC Is : `{}`"
+# Import your bot instance
+from Adarsh.bot import StreamBot
 
-# Owner Button Handler
-@StreamBot.on_message(filters.regex(r"Owner😎"))
-async def owner_handler(client, message):
-    await message.reply(
+# Constant Text
+START_TEXT = "Your Telegram DC Is: `{}`"
+
+# Owner Command Handler
+@StreamBot.on_message(filters.regex(r"(?i)^owner"))
+async def owner_info(bot, message):
+    await bot.send_message(
+        chat_id=message.chat.id,
         text="I am Coded By [SMD Admin](@SMD_Owner)",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🦋𝐒𝐌𝐃_𝐎𝐰𝐧𝐞𝐫🍁", url="https://t.me/SMD_Owner")]
-        ]),
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🦋𝐒𝐌𝐃_𝐎𝐰𝐧𝐞𝐫🍁", url="https://t.me/SMD_Owner")]]
+        ),
         disable_web_page_preview=True
     )
 
-# Channel Button Handler
-@StreamBot.on_message(filters.regex(r"Channel❤️"))
-async def channel_handler(client, message):
-    await message.reply(
+# Channel Command Handler
+@StreamBot.on_message(filters.regex(r"(?i)^channel"))
+async def channel_info(bot, message):
+    await bot.send_message(
+        chat_id=message.chat.id,
         text="<b>𝐇𝐄𝐑𝐄'𝐒 𝐓𝐇𝐄 𝐂𝐇𝐀𝐍𝐍𝐄𝐋 𝐋𝐈𝐍𝐊</b>",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🍁𝐉𝐎𝐈𝐍 𝐇𝐄𝐑𝐄🦋", url="https://t.me/SAM_DUB_LEZHa")]
-        ]),
-        disable_web_page_preview=True
-    )
-
-# Get Telegram DC ID
-@StreamBot.on_message(filters.regex(r"DC"))
-async def dc_handler(client, message):
-    dc_id = message.from_user.dc_id
-    await message.reply_text(
-        text=START_TEXT.format(dc_id),
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🍁𝐉𝐎𝐈𝐍 𝐇𝐄𝐑𝐄🦋", url="https://t.me/SAM_DUB_LEZHa")]]
+        ),
         disable_web_page_preview=True,
-        quote=True
+        parse_mode="html"
     )
 
-# List All Commands
+# DC Info Handler
+@StreamBot.on_message(filters.regex(r"(?i)^dc$"))
+async def send_dc(bot, message):
+    dc_id = message.from_user.dc_id
+    await message.reply_text(START_TEXT.format(dc_id), quote=True)
+
+# Command List Handler
 @StreamBot.on_message(filters.command("list"))
-async def list_handler(client, message):
+async def command_list(bot, message):
     LIST_MSG = (
-        "Hi! {} 👋\n\n"
-        "Here's a list of all my available commands:\n\n"
-        "1. `start⚡️`\n"
-        "2. `help📚`\n"
-        "3. `login🔑`\n"
-        "4. `Channel❤️`\n"
-        "5. `ping📡`\n"
-        "6. `status📊`\n"
-        "7. `DC`\n"
-        "8. `Owner😎`"
+        "Hi! {}\nHere is a list of all my commands:\n\n"
+        "1. `start⚡️`\n2. `help📚`\n3. `login🔑`\n"
+        "4. `Channel❤️`\n5. `ping📡`\n6. `status📊`\n"
+        "7. `DC`\n8. `Owner😎`"
     )
-    await message.reply_text(
-        LIST_MSG.format(message.from_user.mention(style="md"))
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=LIST_MSG.format(message.from_user.mention),
+        parse_mode="markdown"
     )
 
-# Ping Command
-@StreamBot.on_message(filters.regex(r"ping📡"))
-async def ping_handler(client, message):
-    start_time = time.time()
-    temp = await message.reply("Pinging...")
-    end_time = time.time()
-    ping_time = (end_time - start_time) * 1000
-    await temp.edit(f"🏓 Pong! `{ping_time:.3f} ms`")
+# Ping Handler
+@StreamBot.on_message(filters.regex("ping📡"))
+async def ping(bot, message):
+    start_t = time.time()
+    msg = await message.reply_text("....")
+    elapsed = (time.time() - start_t) * 1000
+    await msg.edit(f"Pong!\n{elapsed:.3f} ms")
 
-# Status Command
-@StreamBot.on_message(filters.private & filters.regex(r"status📊"))
-async def status_handler(client, message):
+# Status Handler
+@StreamBot.on_message(filters.private & filters.regex("status📊"))
+async def stats(bot, message):
     uptime = readable_time(time.time() - StartTime)
-
-    total, used, free = shutil.disk_usage(".")
-    total = get_readable_file_size(total)
-    used = get_readable_file_size(used)
-    free = get_readable_file_size(free)
-
-    net = psutil.net_io_counters()
-    sent = get_readable_file_size(net.bytes_sent)
-    recv = get_readable_file_size(net.bytes_recv)
-
-    cpu = psutil.cpu_percent(interval=0.5)
-    ram = psutil.virtual_memory().percent
-    disk = psutil.disk_usage("/").percent
-
+    total, used, free = shutil.disk_usage('.')
     stats_text = (
-        f"<b>🤖 Bot Uptime:</b> {uptime}\n"
-        f"<b>💾 Disk Space:</b> {total}\n"
-        f"<b>📂 Used:</b> {used} | <b>Free:</b> {free}\n\n"
-        f"<b>📊 Data Usage:</b>\n"
-        f"⇪ Upload: {sent}\n"
-        f"⇩ Download: {recv}\n\n"
-        f"<b>🧠 CPU:</b> {cpu}% | <b>RAM:</b> {ram}% | <b>Disk:</b> {disk}%"
+        f"<b>Bot Uptime:</b> {uptime}\n"
+        f"<b>Total disk space:</b> {get_readable_file_size(total)}\n"
+        f"<b>Used:</b> {get_readable_file_size(used)}  "
+        f"<b>Free:</b> {get_readable_file_size(free)}\n\n"
+        f"📊Data Usage📊\n<b>Upload:</b> {get_readable_file_size(psutil.net_io_counters().bytes_sent)}\n"
+        f"<b>Download:</b> {get_readable_file_size(psutil.net_io_counters().bytes_recv)}\n\n"
+        f"<b>CPU:</b> {psutil.cpu_percent()}%  "
+        f"<b>RAM:</b> {psutil.virtual_memory().percent}%  "
+        f"<b>Disk:</b> {psutil.disk_usage('/').percent}%"
     )
+    await message.reply_text(stats_text, parse_mode="html")
 
-    await message.reply_text(stats_text, disable_web_page_preview=True)
+# Optionally: Start & Help Command Placeholders
+@StreamBot.on_message(filters.command("start"))
+async def start(bot, message):
+    await message.reply_text("Hello! I'm alive and ready to help you.")
+
+@StreamBot.on_message(filters.command("help"))
+async def help_cmd(bot, message):
+    await message.reply_text("Use /list to see all available commands.")
+
