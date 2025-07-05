@@ -1,88 +1,30 @@
-from Adarsh.bot import StreamBot
-from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import time
-import shutil
-import psutil
-from utils_bot import get_readable_file_size, readable_time
-from Adarsh import StartTime
-
+from pyrogram import Client, filters
+from pyrogram.types import CallbackQuery
+from pyrogram.raw.functions.help import GetNearestDc
+from Adarsh.bot import StreamBot  # Import your main bot client
 
 # ───────────────────────────────────────────────────────────────
 # Telegram DC Info Command
-@StreamBot.on_message(filters.regex("DC"))
-async def dc_info(client, message):
-    dc_id = getattr(message.from_user, "dc_id", "Unavailable")
-    await message.reply_text(
-        f"Your Telegram DC Is: `{dc_id}`",
-        disable_web_page_preview=True,
-        quote=True
-    )
-
-
-# ───────────────────────────────────────────────────────────────
-# Owner Info Command
-@StreamBot.on_message(filters.regex("Owner😎"))
-async def owner_info(client, message):
-    await message.reply_text(
-        "This bot is created and maintained by the Developer.",
-        reply_markup=InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/Your_Developer_Username")
-            ],
-            [
-                InlineKeyboardButton("💬 Support Chat", url="https://t.me/YourSupportGroup")
-            ]
-        ]),
-        disable_web_page_preview=True
-    )
-
-
-# ───────────────────────────────────────────────────────────────
-# Channel Info Command
-@StreamBot.on_message(filters.regex("Channel❤️"))
-async def channel_info(client, message):
-    await message.reply_text(
-        "<b>Join our official channel for updates and support!</b>",
-        reply_markup=InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("📢 Join Channel", url="https://t.me/Your_Channel_Link")
-            ]
-        ]),
-        disable_web_page_preview=True
-    )
-
-
-# ───────────────────────────────────────────────────────────────
-# Command List Handler
-@StreamBot.on_message(filters.command("list"))
-async def command_list(client, message):
-    user = message.from_user
-    mention = f"[{user.first_name}](tg://user?id={user.id})"
-    list_msg = (
-        f"Hi {mention}, here are all my commands:\n\n"
-        "1. `start⚡️` – Start the bot\n"
-        "2. `help📚` – Show help info\n"
-        "3. `login🔑` – Login\n"
-        "4. `Channel❤️` – Join the channel\n"
-        "5. `ping📡` – Check latency\n"
-        "6. `status📊` – Bot system status\n"
-        "7. `DC` – Your Telegram data center ID\n"
-        "8. `Owner😎` – Contact developer"
-    )
-    await message.reply_text(list_msg, parse_mode="Markdown")
-
-
+@StreamBot.on_callback_query(filters.regex("^dc$"))
+async def dc_handler(client: Client, query: CallbackQuery):
+    try:
+        dc_info = await client.invoke(GetNearestDc())
+        await query.answer(
+            f"📍 Nearest DC: {dc_info.nearest_dc}\n🌐 Current DC: {dc_info.this_dc}",
+            show_alert=True
+        )
+    except Exception as e:
+        await query.answer("❌ Unable to fetch DC info.", show_alert=True)
+        
 # ───────────────────────────────────────────────────────────────
 # Ping Handler
-@StreamBot.on_message(filters.regex("ping📡"))
-async def ping_handler(client, message):
-    start = time.time()
-    reply = await message.reply_text("Pinging...")
-    latency = (time.time() - start) * 1000
-    await reply.edit_text(f"🏓 Pong!\nLatency: `{latency:.3f} ms`", parse_mode="Markdown")
 
-
+@StreamBot.on_callback_query(filters.regex("^ping$"))
+async def ping_handler(client: Client, query: CallbackQuery):
+    try:
+        await query.answer("🏓 Pong! Bot is alive and responding.", show_alert=True)
+    except Exception as e:
+        await query.answer("⚠️ Ping failed.", show_alert=True)
 # ───────────────────────────────────────────────────────────────
 # Bot Status Handler
 @StreamBot.on_message(filters.regex("status📊"))
@@ -108,6 +50,11 @@ async def bot_status(client, message):
             f"<b>📊 System Usage:</b>\n"
             f"CPU: {cpu}% | RAM: {ram}% | Disk: {disk}%"
         )
-        await message.reply_text(msg)
-    except Exception as e:
-        await message.reply_text(f"❌ Error:\n`{str(e)}`", parse_mode="Markdown")
+
+InlineKeyboardMarkup([
+    [
+        InlineKeyboardButton("DC", callback_data="dc"),
+        InlineKeyboardButton("ping📡", callback_data="ping"),
+        InlineKeyboardButton("status📊", callback_data="status"),
+    ]
+])
